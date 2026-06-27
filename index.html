@@ -1279,17 +1279,6 @@
                 filteredStudents = students.filter(s => s.name.toLowerCase().includes(searchQuery));
             }
 
-            if (filteredStudents.length === 0) {
-                const emptyMsg = searchQuery ? 'لا يوجد طلاب مطابقين للبحث.' : 'لا يوجد طلاب مسجلين بعد. ابدأ بإضافة طلاب!';
-                container.innerHTML = `
-                    <div class="bg-[#161B2D]/80 backdrop-blur-md rounded-2xl p-12 text-center border border-slate-800 shadow-xl flex flex-col items-center justify-center">
-                        <span class="text-4xl mb-3">🔍</span>
-                        <p class="font-bold text-base text-white mb-1">${emptyMsg}</p>
-                        <p class="text-xs text-slate-400">حاول البحث باستخدام اسم طالب آخر.</p>
-                    </div>`;
-                return;
-            }
-
             // Update home stats dynamically
             const totalPoints = students.reduce((sum, s) => sum + (s.total_points || 0), 0);
             const totalPages = globalTotalPages;
@@ -1311,6 +1300,17 @@
 
             const circleSummerElem = document.getElementById('stat-circle-summer');
             if (circleSummerElem) circleSummerElem.textContent = formatStudentsCount(totalStudents);
+
+            if (filteredStudents.length === 0) {
+                const emptyMsg = searchQuery ? 'لا يوجد طلاب مطابقين للبحث.' : 'لا يوجد طلاب مسجلين بعد. ابدأ بإضافة طلاب!';
+                container.innerHTML = `
+                    <div class="bg-[#161B2D]/80 backdrop-blur-md rounded-2xl p-12 text-center border border-slate-800 shadow-xl flex flex-col items-center justify-center">
+                        <span class="text-4xl mb-3">🔍</span>
+                        <p class="font-bold text-base text-white mb-1">${emptyMsg}</p>
+                        <p class="text-xs text-slate-400">حاول البحث باستخدام اسم طالب آخر.</p>
+                    </div>`;
+                return;
+            }
 
             let currentPoints = -1;
             let displayedRank = 1;
