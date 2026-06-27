@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الصدارة - مركز التحفيظ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            750: '#2d3748',
+                            850: '#1f2937',
+                        }
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SweetAlert2 (Premium Toasts & Modals) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- Flatpickr Datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ar.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+            background-color: #0B0F1A;
+            color: #f1f5f9;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .modal-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-scrollbar::-webkit-scrollbar-track {
+            background: #0B0F1A;
+        }
+
+        .modal-scrollbar::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+
+        @keyframes subtle-float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-4px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+
+            100% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+
+        .animate-float {
+            animation: subtle-float 3s ease-in-out infinite;
+        }
+
+        .animate-shimmer {
+            background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.4) 50%, transparent 80%);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+
+        .animate-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body
+    class="min-h-screen bg-[#0B0F1A] text-slate-100 pb-24 pt-20 font-sans selection:bg-indigo-600/30 selection:text-indigo-200">
+    <!-- New Top Header -->
+    <header
+        class="fixed top-0 left-0 right-0 w-full z-40 bg-[#0B0F1A]/85 backdrop-blur-md shadow-lg flex justify-between items-center px-4 h-16 border-b border-slate-800/80">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 rounded-xl bg-indigo-600/15 flex items-center justify-center border border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.15)]">
+                <span class="text-xl">🕌</span>
+            </div>
+            <div class="flex flex-col text-right">
+                <h1 class="font-bold text-base md:text-lg text-white tracking-tight">مسجد الشركس القديم</h1>
+                <span class="text-[10px] text-slate-400 font-semibold tracking-wide">نور العلم، وسام الإيمان</span>
+            </div>
+        </div>
+
+        <div class="hidden md:flex justify-center text-center">
+            <p
+                class="font-semibold text-xs text-slate-300 bg-slate-900/65 border border-slate-800/90 px-4 py-1.5 rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">
+                لوحة الصدارة لحلقات تحفيظ القرآن الكريم
+            </p>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2.5 bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-800/90">
+                <span class="font-semibold text-xs text-slate-300">وضع المشرف</span>
+                <button id="admin-toggle-btn"
+                    class="w-10 h-6 rounded-full relative transition-colors duration-300 cursor-pointer bg-slate-800">
+                    <div id="admin-toggle-knob"
+                        class="w-4 h-4 bg-white rounded-full absolute top-1 left-5 transition-all duration-300 flex items-center justify-center shadow-md">
+                        <svg id="admin-shield-icon" class="w-2.5 h-2.5 text-indigo-600 hidden" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                            </path>
+                        </svg>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6">
+
+        <!-- Navigation Tabs -->
+        <div class="flex justify-center mb-6 gap-2">
+            <button onclick="switchTab('leaderboard')" id="tab-btn-leaderboard"
+                class="px-5 py-2 rounded-full font-bold text-xs md:text-sm cursor-pointer transition-all duration-200 bg-indigo-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)]">📊
+                لوحة الترتيب</button>
+            <button onclick="switchTab('home')" id="tab-btn-home"
+                class="px-5 py-2 rounded-full font-bold text-xs md:text-sm cursor-pointer transition-all duration-200 bg-[#161B2D]/80 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white">🕌
+                إحصائيات الحلقة</button>
+            <button onclick="switchTab('awards')" id="tab-btn-awards"
+                class="px-5 py-2 rounded-full font-bold text-xs md:text-sm cursor-pointer transition-all duration-200 bg-[#161B2D]/80 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white">⭐
+                الأوسمة والشارات</button>
+            <button onclick="switchTab('settings')" id="tab-btn-settings"
+                class="px-5 py-2 rounded-full font-bold text-xs md:text-sm cursor-pointer transition-all duration-200 bg-[#161B2D]/80 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white">⚙️
+                معلومات المسجد</button>
+        </div>
+
+        <div id="view-leaderboard" class="space-y-6 block">
+            <div class="text-center mb-4">
+                <h2 class="font-bold text-xl md:text-2xl text-white mb-1">المتصدرون والترتيب العام</h2>
+                <p class="text-xs md:text-sm text-slate-400">حلقات التسميع والتحفيظ بمسجد الشركس القديم</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 items-center">
+                <div class="relative w-full flex-1">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="search-input" placeholder="ابحث عن اسم طالب في الحلقة..."
+                        class="w-full py-3.5 pr-11 pl-4 bg-[#161B2D]/90 text-white text-xs md:text-sm rounded-xl border border-slate-800 shadow-inner focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-500">
+                </div>
+            </div>
+
+            <div id="admin-controls"
+                class="hidden bg-[#161B2D]/90 rounded-2xl p-5 border border-slate-800 shadow-xl mb-4">
+                <h2 class="text-xl font-bold mb-4 text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    إضافة طالب جديد
+                </h2>
+                <form id="add-student-form" class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="new-student-name" placeholder="اسم الطالب"
+                        class="flex-1 bg-[#0B0F1A] text-white px-4 py-3 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition shadow-inner"
+                        required>
+                    <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition shadow-lg hover:shadow-indigo-500/25 active:scale-95">إضافة</button>
+                </form>
+            </div>
+
+            <div id="leaderboard" class="flex flex-col gap-3">
+                <div
+                    class="bg-[#161B2D]/80 backdrop-blur-md rounded-2xl p-12 text-center border border-slate-800 shadow-xl flex flex-col items-center justify-center">
+                    <svg class="animate-spin h-8 w-8 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    جاري تحميل لوحة الشرف...
+                </div>
+            </div>
+        </div>
+        <!-- Tab content 2: Circle stats -->
+        <div id="view-home" class="space-y-6 hidden">
+            <div class="text-center">
+                <h2 class="font-bold text-xl md:text-2xl text-white mb-1">إحصائيات حلقات القرآن الكريم</h2>
+                <p class="text-xs md:text-sm text-slate-400">مؤشرات الأداء اليومية ونشاط حفظ الطلاب</p>
+            </div>
+            <!-- Bento Grid Stats (Static Dummy Data) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div
+                    class="bg-[#161B2D]/85 p-5 rounded-2xl border border-slate-800/80 shadow-lg text-right flex items-start gap-4 hover:border-slate-700/80 transition-all">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-indigo-600/15 flex items-center justify-center text-xl shrink-0 border border-indigo-500/20 text-indigo-400">
+                        👥</div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-bold block mb-1">الطلاب المسجلين</span>
+                        <span id="stat-total-students" class="text-2xl font-black text-white">-</span>
+                        <span class="text-[10px] text-slate-500 block mt-1">طالب نشط بالحلقات</span>
+                    </div>
+                </div>
+                <div
+                    class="bg-[#161B2D]/85 p-5 rounded-2xl border border-slate-800/80 shadow-lg text-right flex items-start gap-4 hover:border-slate-700/80 transition-all">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-yellow-500/15 flex items-center justify-center text-xl shrink-0 border border-yellow-500/20 text-yellow-400">
+                        ⭐</div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-bold block mb-1">إجمالي نقاط الطلاب</span>
+                        <span id="stat-total-points" class="text-2xl font-black text-white">-</span>
+                        <span class="text-[10px] text-slate-500 block mt-1">نقطة تشجيعية تراكمية</span>
+                    </div>
+                </div>
+                <div
+                    class="bg-[#161B2D]/85 p-5 rounded-2xl border border-slate-800/80 shadow-lg text-right flex items-start gap-4 hover:border-slate-700/80 transition-all">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-amber-500/15 flex items-center justify-center text-xl shrink-0 border border-amber-500/20 text-amber-400">
+                        📖</div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-bold block mb-1">إجمالي الصفحات المسمّعة</span>
+                        <span id="stat-total-pages" class="text-2xl font-black text-white">-</span>
+                        <span class="text-[10px] text-slate-500 block mt-1">صفحة مراجعة وحفظ مسجلة</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Circle summary list -->
+            <div class="bg-[#161B2D]/85 rounded-2xl p-6 border border-slate-800/80 shadow-lg text-right">
+                <h3 class="font-bold text-base text-white mb-4 border-b border-slate-800 pb-3 flex items-center gap-2">
+                    <span class="text-xl">📚</span> الحلقات الدراسية النشطة بمسجد الشركس
+                </h3>
+                <div class="space-y-4">
+                    <div
+                        class="flex justify-between items-center bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
+                        <div>
+                            <span class="font-bold text-white block">المركز الصيفي</span>
+                            <span class="text-xs text-slate-400">حفظ وتأسيس الطلاب فوق سن العاشرة</span>
+                        </div>
+                        <span id="stat-circle-summer"
+                            class="bg-indigo-600/20 text-indigo-300 font-bold text-xs px-3 py-1 rounded-full border border-indigo-500/25"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab content 3: Awards dictionary -->
+        <div id="view-awards" class="space-y-8 hidden">
+            <div class="text-center">
+                <h2 class="font-bold text-xl md:text-2xl text-white mb-2">دليل الأوسمة والشارات التقديرية</h2>
+                <p class="text-xs md:text-sm text-slate-400">شروط الحصول على شارات الحفظ والالتزام بالحلقات</p>
+            </div>
+
+            <!-- Category 1 -->
+            <div>
+                <h3 class="text-lg font-bold text-indigo-400 mb-3 border-b border-slate-800 pb-2">١. مجموعة الالتزام
+                    والمواظبة</h3>
+                <p class="text-xs text-slate-400 mb-4">تركز هذه المجموعة على بناء عادات إيجابية طويلة المدى لدى الطلاب
+                    وضمان استمراريتهم في الحلقات.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- registered_badge -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-indigo-500/50 transition-all group">
+                        <img src="assets/badges/registered_badge.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="عضو جديد">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">عضو جديد</h4>
+                                <span
+                                    class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">+5
+                                    نقاط</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">وسام ترحيبي يُمنح تلقائياً بمجرد تسجيل
+                                الطالب في المنصة لأول مرة لكسر الجليد وتحفيزه.</p>
+                        </div>
+                    </div>
+                    <!-- first_attendance -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-indigo-500/50 transition-all group">
+                        <img src="assets/badges/first_attendance.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="الخطوة الأولى">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">الخطوة الأولى</h4>
+                                <span
+                                    class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">+10
+                                    نقاط</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يُمنح عند تسجيل أول يوم حضور فعلي في
+                                المسجد لتشجيع الطالب على المبادرة.</p>
+                        </div>
+                    </div>
+                    <!-- attendance_3 -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-indigo-500/50 transition-all group">
+                        <img src="assets/badges/attendance_3.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="المواظب الناشئ">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">المواظب الناشئ</h4>
+                                <span
+                                    class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">+15
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يُمنح عند التزام الطالب بالحضور لـ 3 أيام
+                                متتالية.</p>
+                        </div>
+                    </div>
+                    <!-- attendance_5 -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-indigo-500/50 transition-all group">
+                        <img src="assets/badges/attendance_5.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="نجم الالتزام">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">نجم الالتزام</h4>
+                                <span
+                                    class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">+25
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يُمنح عند إتمام حضور أسبوع كامل من الحلقات
+                                بنجاح.</p>
+                        </div>
+                    </div>
+                    <!-- attendance_10 -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-indigo-500/50 transition-all group">
+                        <img src="assets/badges/attendance_10.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="بطل المواظبة">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">بطل المواظبة</h4>
+                                <span
+                                    class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">+50
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يُمنح عند الالتزام بالحضور لـ 10 أيام
+                                (أسبوعين تقريباً).</p>
+                        </div>
+                    </div>
+                    <!-- attendance_15 -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-indigo-500/50 transition-all group">
+                        <img src="assets/badges/attendance_15.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="فارس المسجد">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">فارس المسجد</h4>
+                                <span
+                                    class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">+75
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">وسام متقدم يظهر التزاماً حديدياً لمدة 3
+                                أسابيع.</p>
+                        </div>
+                    </div>
+                    <!-- attendance_20 -->
+                    <div
+                        class="bg-gradient-to-br from-indigo-900/40 to-[#161B2D] p-4 rounded-2xl border border-indigo-500/30 shadow-lg flex items-start gap-4 text-right hover:border-indigo-400/60 transition-all group">
+                        <img src="assets/badges/attendance_20.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                            alt="سلطان الالتزام">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">سلطان الالتزام</h4>
+                                <span
+                                    class="text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded font-mono shadow-md">+100
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed">الجائزة الكبرى في فئة الحضور، ويُمنح لمن
+                                يلتزم شهراً كاملاً بدون غياب.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 2 -->
+            <div>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3 border-b border-slate-800 pb-2">٢. مجموعة التميز
+                    والنشاط</h3>
+                <p class="text-xs text-slate-400 mb-4">تستهدف هذه المجموعة قياس التفاعل الحركي وسرعة الإنجاز اليومي
+                    والأسبوعي في الحفظ والمراجعة.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- high_activity -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-emerald-500/50 transition-all group">
+                        <img src="assets/badges/high_activity.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2310b981\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="شعلة النشاط">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">شعلة النشاط</h4>
+                                <span
+                                    class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono">+20
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يُمنح للطالب الذي يظهر طاقة استثنائية، أو
+                                يشارك في الإجابة على أسئلة التفسير والأسئلة الجانبية التي يطرحها الشيخ في الحلقة.</p>
+                        </div>
+                    </div>
+                    <!-- weekly_hero -->
+                    <div
+                        class="bg-gradient-to-br from-emerald-900/30 to-[#161B2D] p-4 rounded-2xl border border-emerald-500/30 shadow-lg flex items-start gap-4 text-right hover:border-emerald-400/60 transition-all group">
+                        <img src="assets/badges/weekly_hero_1.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2310b981\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="بطل الأسبوع">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">بطل الأسبوع</h4>
+                                <span
+                                    class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono">+40
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed">وسام تنافسي دوري يُمنح لطالب واحد أو
+                                طالبين فقط في نهاية كل أسبوع بناءً على تقييم الشيخ العام لأكثر الطلاب تميزاً وإنتاجية.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 3 -->
+            <div>
+                <h3 class="text-lg font-bold text-sky-400 mb-3 border-b border-slate-800 pb-2">٣. مجموعة السلوك والأثر
+                    التربوي</h3>
+                <p class="text-xs text-slate-400 mb-4">لأن القرآن خلقٌ يُعاش وليس فقط آيات تُحفظ، تم تصميم هذه الأوسمة
+                    لتعزيز الجانب السلوكي والأخلاقي داخل المسجد.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- good_manners -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-sky-500/50 transition-all group">
+                        <img src="assets/badges/good_manners.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2338bdf8\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="الخلوق المهذب">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">الخلوق المهذب</h4>
+                                <span class="text-[10px] bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded font-mono">+30
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يُمنح للطالب الذي يتميز بأدبه الرفيع مع
+                                الشيخ ومع زملائه، ويكون قدوة في الهدوء والإنصات أثناء تلاوة القرآن.</p>
+                        </div>
+                    </div>
+                    <!-- cleanliness_hero -->
+                    <div
+                        class="bg-[#161B2D]/85 p-4 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4 text-right hover:border-sky-500/50 transition-all group">
+                        <img src="assets/badges/cleanliness_hero.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2338bdf8\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-12 h-12 md:w-16 md:h-16 object-contain shrink-0 group-hover:scale-110 transition-transform"
+                            alt="صديق البيئة / شبل النظافة">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm md:text-base text-white">صديق البيئة / شبل النظافة</h4>
+                                <span class="text-[10px] bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded font-mono">+20
+                                    نقطة</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">يُمنح مكافأة للطالب الذي يبادر بتنظيف
+                                مكانه، أو ترتيب المصاحف في الرفوف بعد انتهاء الحلقة، أو المساعدة في تجهيز مكان الحلقة في
+                                المسجد.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 4 -->
+            <div>
+                <h3 class="text-lg font-bold text-amber-400 mb-3 border-b border-slate-800 pb-2">٤. الوسام الملكي
+                    للإتقان والحفظ</h3>
+                <p class="text-xs text-slate-400 mb-4">هذا هو وسام النخبة الأعلى قيمة والأكثر هيبة في لوحة الصدارة
+                    كاملة.</p>
+                <div class="grid grid-cols-1 gap-4">
+                    <!-- master_memorizer -->
+                    <div
+                        class="bg-gradient-to-br from-amber-900/40 via-[#161B2D] to-slate-900 p-5 rounded-3xl border-2 border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)] flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-right hover:border-amber-400/60 transition-all group overflow-hidden relative">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-shine opacity-60 pointer-events-none">
+                        </div>
+                        <img src="assets/badges/master_memorizer.png"
+                            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23f59e0b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'"
+                            class="w-24 h-24 md:w-32 md:h-32 object-contain shrink-0 group-hover:scale-110 transition-transform drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]"
+                            alt="الحافظ المتقن">
+                        <div class="flex-1 relative z-10">
+                            <div class="flex flex-col md:flex-row justify-between items-center mb-2 gap-2">
+                                <h4
+                                    class="font-extrabold text-lg md:text-xl text-transparent bg-clip-text bg-gradient-to-l from-amber-300 to-amber-500">
+                                    الحافظ المتقن</h4>
+                                <span
+                                    class="text-xs bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-3 py-1 rounded-full font-mono font-bold shadow-lg shadow-amber-500/30">+100
+                                    نقطة</span>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed">يُمنح هذا الوسام الفخم فقط عندما يُتم
+                                الطالب حفظ وإتقان جزء كامل من القرآن الكريم وتسميعه أمام الشيخ بدون أخطاء (أو عند اجتياز
+                                اختبار الجزء بنجاح). يعطي هذا الوسام قفزة هائلة في النقاط الكلية مما قد يرفع الطالب
+                                مستويين أو ثلاثة دفعة واحدة.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Tab content 4: Settings / Mosque Info -->
+        <div id="view-settings" class="space-y-6 hidden">
+            <div class="text-center">
+                <h2 class="font-bold text-xl md:text-2xl text-white mb-1">مسجد الشركس القديم</h2>
+                <p class="text-xs md:text-sm text-slate-400">معلومات الحلقات وقيم التواصل المباركة</p>
+            </div>
+            <div class="bg-[#161B2D]/85 rounded-2xl p-6 border border-slate-800 shadow-lg text-right space-y-4">
+                <h3 class="font-bold text-base text-indigo-400 flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <span>📍</span> عن الحلقات
+                </h3>
+                <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+                    تعتبر حلقات تحفيظ القرآن الكريم بمسجد الشركس القديم منارات علمية لغرس حب كتاب الله وتعلم أحكام
+                    تلاوته وتجويده. نهدف من خلال الحلقات إلى بناء جيل واعٍ متخلق بأخلاق القرآن العظيم ونهج الرسول الكريم
+                    عليه أفضل الصلاة والتسليم.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+                    <div>
+                        <span class="font-bold text-white text-xs md:text-sm block">المشرف العام</span>
+                        <span class="text-xs text-slate-400">فضيلة الشيخ محمود الرماضنة</span>
+                    </div>
+                    <div>
+                        <span class="font-bold text-white text-xs md:text-sm block">الاوقات</span>
+                        <span class="text-xs text-slate-400">يوم السبت الساعة العاشرة صباحا</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Sticky Bottom Navigation Bar -->
+    <nav
+        class="md:hidden fixed bottom-0 left-0 right-0 w-full rounded-t-2xl z-40 bg-[#0B0F1A]/95 backdrop-blur-md shadow-2xl flex justify-around items-center h-20 border-t border-slate-800/80 px-4">
+        <button onclick="switchTab('home')" id="mobile-tab-home"
+            class="flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 text-slate-400 hover:text-slate-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                </path>
+            </svg>
+            <span class="text-[10px] mt-1 font-bold">الرئيسية</span>
+        </button>
+        <button onclick="switchTab('leaderboard')" id="mobile-tab-leaderboard"
+            class="flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 text-indigo-400">
+            <svg class="w-5 h-5 fill-indigo-500/10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+            </svg>
+            <span class="text-[10px] mt-1 font-bold">التصنيف</span>
+        </button>
+        <button onclick="switchTab('awards')" id="mobile-tab-awards"
+            class="flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 text-slate-400 hover:text-slate-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
+                </path>
+            </svg>
+            <span class="text-[10px] mt-1 font-bold">الجوائز</span>
+        </button>
+        <button onclick="switchTab('settings')" id="mobile-tab-settings"
+            class="flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 text-slate-400 hover:text-slate-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span class="text-[10px] mt-1 font-bold">الإعدادات</span>
+        </button>
+    </nav>
+
+    <footer class="mt-auto py-8 text-center relative z-10">
+        <button id="admin-login-btn"
+            class="text-gray-800 hover:text-gray-500 text-xs font-bold transition focus:outline-none tracking-widest px-4 py-2 opacity-50 hover:opacity-100">الإدارة</button>
+    </footer>
+
+    <!-- Student Modal -->
+    <div id="student-modal"
+        class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div
+            class="bg-[#161B2D] rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-slate-800 shadow-2xl flex flex-col transform scale-95 transition-transform duration-300">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-800 bg-[#111625] sticky top-0 z-10 flex justify-between items-start">
+                <div>
+                    <h2 id="modal-student-name" class="text-2xl font-bold text-white mb-2">...</h2>
+                    <div class="text-amber-400 font-extrabold text-xl flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                            </path>
+                        </svg>
+                        <span id="modal-student-points">0</span> نقطة
+                    </div>
+                </div>
+                <button onclick="closeModal()"
+                    class="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto modal-scrollbar flex-1">
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold mb-4 text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
+                            </path>
+                        </svg>
+                        الأوسمة والإنجازات
+                    </h3>
+                    <div id="modal-badges-grid"
+                        class="grid grid-cols-3 sm:grid-cols-4 gap-4 bg-[#111625] p-4 rounded-2xl border border-slate-800">
+                        <!-- Badges injected here -->
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold mb-4 text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                            </path>
+                        </svg>
+                        سجل المتابعة
+                    </h3>
+                    <div
+                        class="bg-[#111625] rounded-2xl p-1 h-52 overflow-y-auto modal-scrollbar border border-slate-800">
+                        <table class="w-full text-sm text-right relative">
+                            <thead
+                                class="text-slate-400 sticky top-0 bg-[#0B0F1A] z-10 shadow-sm border-b border-slate-800">
+                                <tr>
+                                    <th class="py-3 px-4 font-semibold">التاريخ</th>
+                                    <th class="py-3 px-4 font-semibold">الحضور</th>
+                                    <th class="py-3 px-4 font-semibold text-center">الصفحات</th>
+                                    <th class="py-3 px-4 font-semibold">النقاط</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-logs-table" class="divide-y divide-slate-800/50">
+                                <!-- Logs injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Admin specific modal sections -->
+                <div id="admin-modal-controls"
+                    class="hidden bg-[#111625] rounded-2xl p-6 border border-slate-800 relative overflow-hidden mt-6">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-indigo-500"></div>
+                    <h3 class="text-lg font-bold mb-5 text-indigo-400 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                            </path>
+                        </svg>
+                        تحديث السجل (للمشرف)
+                    </h3>
+                    <form id="update-log-form">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-300 mb-2">التاريخ</label>
+                                <input type="date" id="log-date"
+                                    class="w-full bg-[#0B0F1A] text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition text-right"
+                                    dir="rtl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-300 mb-2">حالة الحضور</label>
+                                <select id="log-attendance"
+                                    class="w-full bg-[#0B0F1A] text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition">
+                                    <option value="present">حاضر (+100 نقطة)</option>
+                                    <option value="absent">غائب (0 نقاط)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-300 mb-2">عدد الصفحات
+                                    المحفوظة</label>
+                                <div class="relative">
+                                    <input type="number" id="log-pages" min="0" value="0"
+                                        class="w-full bg-[#0B0F1A] text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition pl-12 text-left"
+                                        dir="ltr">
+                                    <span class="absolute left-4 top-2.5 text-gray-500 text-sm">صفحة</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="save-log-btn"
+                            class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white py-3.5 rounded-xl font-bold transition shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98] flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
+                                </path>
+                            </svg>
+                            <span>حفظ السجل وتحديث النقاط</span>
+                        </button>
+                    </form>
+
+                    <h3
+                        class="text-lg font-bold mt-8 mb-5 text-amber-400 flex items-center gap-2 border-t border-white/[0.07] pt-6">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        إدارة الأوسمة
+                    </h3>
+                    <form id="update-badges-form">
+                        <div class="mb-6">
+                            <div id="admin-badges-checkboxes"
+                                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-sm">
+                                <!-- Checkboxes injected here -->
+                            </div>
+                        </div>
+
+                        <button type="submit" id="save-badges-btn"
+                            class="w-full bg-slate-800 hover:bg-slate-700 text-white py-3.5 rounded-xl font-bold transition shadow border border-slate-700 active:scale-[0.98] flex items-center justify-center gap-2 mb-4">
+                            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
+                                </path>
+                            </svg>
+                            <span>حفظ الأوسمة</span>
+                        </button>
+                        <button type="button" id="delete-student-btn"
+                            class="w-full mt-3 bg-red-900/40 hover:bg-red-900/60 text-red-400 py-3 rounded-xl font-bold transition border border-red-500/30 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
+                            <span>حذف الطالب نهائياً</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. Database & Project Configurations
+        // ==========================================
+        const SUPABASE_URL = 'https://iygspaltrehtsjcgobtp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_FFfpiGWNLEj8Ac0jD9NNBw_lStneJyk';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const ADMIN_PASSWORD = "masjed2026";
+        let isAdmin = false;
+        let students = [];
+        let currentStudentId = null;
+        let globalTotalPages = 0;
+
+        // Custom Badges Mapping
+        const BADGES = {
+            'registered_badge': 'عضو جديد',
+            'first_attendance': 'الخطوة الأولى',
+            'attendance_3': 'المواظب الناشئ',
+            'attendance_5': 'نجم الالتزام',
+            'attendance_10': 'بطل المواظبة',
+            'attendance_15': 'فارس المسجد',
+            'attendance_20': 'سلطان الالتزام',
+            'high_activity': 'شعلة النشاط',
+            'weekly_hero_1': 'بطل الأسبوع 1',
+            'weekly_hero_2': 'بطل الأسبوع 2',
+            'weekly_hero_3': 'بطل الأسبوع 3',
+            'weekly_hero_4': 'بطل الأسبوع 4',
+            'weekly_hero_5': 'بطل الأسبوع 5',
+            'weekly_hero_6': 'بطل الأسبوع 6',
+            'weekly_hero_7': 'بطل الأسبوع 7',
+            'weekly_hero_8': 'بطل الأسبوع 8',
+            'weekly_hero_9': 'بطل الأسبوع 9',
+            'weekly_hero_10': 'بطل الأسبوع 10',
+            'good_manners': 'الخلوق المهذب',
+            'cleanliness_hero': 'صديق البيئة',
+            'master_memorizer': 'الحافظ المتقن'
+        };
+
+        const BADGE_POINTS = {
+            'registered_badge': 5,
+            'first_attendance': 10,
+            'attendance_3': 15,
+            'attendance_5': 25,
+            'attendance_10': 50,
+            'attendance_15': 75,
+            'attendance_20': 100,
+            'high_activity': 20,
+            'weekly_hero_1': 40,
+            'weekly_hero_2': 40,
+            'weekly_hero_3': 40,
+            'weekly_hero_4': 40,
+            'weekly_hero_5': 40,
+            'weekly_hero_6': 40,
+            'weekly_hero_7': 40,
+            'weekly_hero_8': 40,
+            'weekly_hero_9': 40,
+            'weekly_hero_10': 40,
+            'good_manners': 30,
+            'cleanliness_hero': 20,
+            'master_memorizer': 100
+        };
+
+        const defaultSvgFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmFjYzE1IiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTkgMTJsMiAyIDQtNE03LjgzNSA0LjY5N2EzLjQyIDMuNDIgMCAwMDEuOTQ2LS44MDYgMy40MiAzLjQyIDAgMDEwIDQuNDM4IDMuNDIgMy40MiAwIDAwMS45NDYuODA2IDMuNDIgMy40MiAwIDAxMy4xMzggMy4xMzggMy40MiAzLjQyIDAgMDAuODA2IDEuOTQ2IDMuNDIgMy40MiAwIDAxMCA0LjQzOCAzLjQyIDMuNDIgMCAwMC0uODA2IDEuOTQ2IDMuNDIgMy40MiAwIDAxLTMuMTM4IDMuMTM4IDMuNDIgMy40MiAwIDAwLTEuOTQ2LjgwNiAzLjQyIDMuNDIgMCAwMS00LjQzOCAwIDMuNDIgMy40MiAwIDAwLTEuOTQ2LS44MDYgMy40MiAzLjQyIDAgMDEtMy4xMzgtMy4xMzggMy40MiAzLjQyIDAgMDAtLjgwNi0xLjk0NiAzLjQyIDMuNDIgMCAwMTAtNC40MzggMy40MiAzLjQyIDAgMDAuODA2LTEuOTQ2IDMuNDIgMy40MiAwIDAxMy4xMzgtMy4xMzhaIi8+PC9zdmc+';
+
+        // ==========================================
+        // 2. Initialization & Core Functions
+        // ==========================================
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: '#1f2937',
+            color: '#fff'
+        });
+
+        let searchQuery = '';
+        let datePicker = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            datePicker = flatpickr("#log-date", {
+                locale: "ar",
+                dateFormat: "Y-m-d",
+                defaultDate: "today",
+                disableMobile: true,
+                theme: "dark"
+            });
+
+            fetchStudents();
+
+            // Search Handler
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                renderLeaderboard();
+            });
+
+            // Admin Login Handler function
+            async function toggleAdminLogin() {
+                if (isAdmin) {
+                    isAdmin = false;
+                    renderUI();
+                    return;
+                }
+                const { value: password } = await Swal.fire({
+                    title: 'أدخل كلمة مرور المشرف (الشيخ):',
+                    input: 'password',
+                    inputPlaceholder: 'كلمة المرور...',
+                    background: '#1f2937',
+                    color: '#fff',
+                    confirmButtonColor: '#4f46e5',
+                    confirmButtonText: 'دخول',
+                    showCancelButton: true,
+                    cancelButtonText: 'إلغاء'
+                });
+
+                if (password) {
+                    if (password === ADMIN_PASSWORD) {
+                        isAdmin = true;
+                        renderUI();
+                        Toast.fire({ icon: 'success', title: 'تم تفعيل وضع المشرف' });
+                    } else {
+                        Toast.fire({ icon: 'error', title: 'كلمة المرور غير صحيحة' });
+                    }
+                }
+            }
+
+            document.getElementById('admin-login-btn').addEventListener('click', toggleAdminLogin);
+            document.getElementById('admin-toggle-btn').addEventListener('click', toggleAdminLogin);
+
+            // Add Student Handler
+            document.getElementById('add-student-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nameInput = document.getElementById('new-student-name');
+                const name = nameInput.value.trim();
+                if (!name) return;
+
+                const btn = e.target.querySelector('button');
+                btn.disabled = true;
+                btn.innerHTML = 'جاري الإضافة...';
+
+                try {
+                    if (SUPABASE_URL.includes('YOUR_SUPABASE')) {
+                        throw new Error("يرجى إعداد رابط ومفتاح Supabase في الكود أولاً.");
+                    }
+
+                    const { error } = await _supabase
+                        .from('students')
+                        .insert([{ name: name, total_points: 0, badges: [] }]);
+
+                    if (error) throw error;
+
+                    nameInput.value = '';
+                    await fetchStudents();
+                    Toast.fire({ icon: 'success', title: 'تم إضافة الطالب بنجاح' });
+                } catch (err) {
+                    Toast.fire({ icon: 'error', title: 'خطأ في الإضافة: ' + err.message });
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'إضافة';
+                }
+            });
+
+            // Update Log Handler
+            document.getElementById('update-log-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentStudentId) return;
+
+                const btn = document.getElementById('save-log-btn');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = 'جاري الحفظ...';
+
+                try {
+                    if (SUPABASE_URL.includes('YOUR_SUPABASE')) {
+                        throw new Error("يرجى إعداد رابط ومفتاح Supabase في الكود أولاً.");
+                    }
+
+                    const attendance = document.getElementById('log-attendance').value;
+                    const pages = parseInt(document.getElementById('log-pages').value) || 0;
+
+                    let pointsEarned = 0;
+                    if (attendance === 'present') pointsEarned += 100;
+                    pointsEarned += (pages * 5);
+
+                    // Insert Log
+                    const { error: logError } = await _supabase
+                        .from('logs')
+                        .insert([{
+                            student_id: currentStudentId,
+                            status: attendance === 'present' ? 'حاضر' : 'غائب',
+                            pages_saved: pages,
+                            date: document.getElementById('log-date').value ? new Date(document.getElementById('log-date').value + 'T12:00:00').toISOString() : new Date().toISOString()
+                        }]);
+
+                    if (logError) throw logError;
+
+                    // Update Student Points
+                    const student = students.find(s => s.id === currentStudentId);
+                    const newTotal = (student.total_points || 0) + pointsEarned;
+
+                    const { error: updateError } = await _supabase
+                        .from('students')
+                        .update({ total_points: newTotal })
+                        .eq('id', currentStudentId);
+
+                    if (updateError) throw updateError;
+
+                    // Refresh data instantly
+                    await fetchStudents();
+                    const updatedStudent = students.find(s => s.id === currentStudentId);
+                    openStudentModal(updatedStudent);
+
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                    Toast.fire({ icon: 'success', title: 'تم حفظ السجل وتحديث النقاط!' });
+
+                } catch (err) {
+                    Toast.fire({ icon: 'error', title: 'حدث خطأ: ' + err.message });
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            });
+
+            // Update Badges Handler
+            document.getElementById('update-badges-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentStudentId) return;
+
+                const btn = document.getElementById('save-badges-btn');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = 'جاري الحفظ...';
+
+                try {
+                    const student = students.find(s => s.id === currentStudentId);
+                    const oldBadges = student.badges || [];
+
+                    const selectedBadges = [];
+                    const checkboxes = document.querySelectorAll('.badge-checkbox');
+                    checkboxes.forEach(cb => {
+                        if (cb.checked) selectedBadges.push(cb.value);
+                    });
+
+                    // Calculate point delta based on added/removed badges
+                    let pointDelta = 0;
+                    selectedBadges.forEach(b => {
+                        if (!oldBadges.includes(b)) pointDelta += (BADGE_POINTS[b] || 0); // newly checked
+                    });
+                    oldBadges.forEach(b => {
+                        if (!selectedBadges.includes(b)) pointDelta -= (BADGE_POINTS[b] || 0); // unchecked
+                    });
+
+                    const newTotal = Math.max(0, (student.total_points || 0) + pointDelta);
+
+                    const { error: updateError } = await _supabase
+                        .from('students')
+                        .update({ badges: selectedBadges, total_points: newTotal })
+                        .eq('id', currentStudentId);
+
+                    if (updateError) throw updateError;
+
+                    await fetchStudents();
+                    const updatedStudent = students.find(s => s.id === currentStudentId);
+                    openStudentModal(updatedStudent);
+
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    Toast.fire({ icon: 'success', title: 'تم تحديث الأوسمة بنجاح!' });
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                } catch (err) {
+                    Toast.fire({ icon: 'error', title: 'حدث خطأ: ' + err.message });
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            });
+
+            // Delete Student Handler
+            document.getElementById('delete-student-btn').addEventListener('click', async () => {
+                if (!currentStudentId) return;
+
+                const { isConfirmed } = await Swal.fire({
+                    title: 'هل أنت متأكد؟',
+                    text: 'سيتم حذف هذا الطالب وجميع سجلاته نهائياً.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    background: '#1f2937',
+                    color: '#fff',
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'نعم، احذف',
+                    cancelButtonText: 'إلغاء'
+                });
+
+                if (!isConfirmed) return;
+
+                const btn = document.getElementById('delete-student-btn');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = 'جاري الحذف...';
+                btn.disabled = true;
+
+                try {
+                    // Delete logs first to avoid FK constraint errors if cascade isn't on
+                    const { error: logsError } = await _supabase
+                        .from('logs')
+                        .delete()
+                        .eq('student_id', currentStudentId);
+
+                    if (logsError) throw logsError;
+
+                    // Delete the student
+                    const { error: studentError } = await _supabase
+                        .from('students')
+                        .delete()
+                        .eq('id', currentStudentId);
+
+                    if (studentError) throw studentError;
+
+                    closeModal();
+                    await fetchStudents(); // Refresh UI instantly
+                    Toast.fire({ icon: 'success', title: 'تم حذف الطالب بنجاح' });
+                } catch (err) {
+                    Toast.fire({ icon: 'error', title: 'خطأ في الحذف: ' + err.message });
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        async function fetchStudents() {
+            if (SUPABASE_URL.includes('YOUR_SUPABASE')) {
+                // Mock data for UI presentation if Supabase isn't configured yet
+                students = [
+                    { id: 1, name: 'أحمد محمد', total_points: 150, badges: ['registered_badge', 'first_attendance', 'good_manners'] },
+                    { id: 2, name: 'عمر خالد', total_points: 120, badges: ['registered_badge', 'first_attendance'] },
+                    { id: 3, name: 'يوسف علي', total_points: 95, badges: ['registered_badge'] },
+                ];
+                renderUI();
+                return;
+            }
+
+            try {
+                const { data, error } = await _supabase
+                    .from('students')
+                    .select('*')
+                    .order('total_points', { ascending: false });
+
+                if (error) throw error;
+                students = data || [];
+
+                // Fetch Total Pages from logs
+                const { data: logsData, error: logsError } = await _supabase
+                    .from('logs')
+                    .select('pages_saved');
+
+                if (!logsError && logsData) {
+                    globalTotalPages = logsData.reduce((sum, log) => sum + (log.pages_saved || 0), 0);
+                }
+
+                renderUI();
+            } catch (error) {
+                console.error('Error fetching students:', error);
+                document.getElementById('leaderboard').innerHTML = `<div class="p-8 text-center text-red-400 bg-red-900/10 border border-red-500/20 m-4 rounded-xl">خطأ في الاتصال بقاعدة البيانات. تأكد من إعدادات Supabase.</div>`;
+            }
+        }
+
+        // ==========================================
+        // 3. UI Rendering & Interactions
+        // ==========================================
+        function renderUI() {
+            const adminElements = [
+                { id: 'admin-banner', show: isAdmin },
+                { id: 'admin-controls', show: isAdmin },
+                { id: 'admin-modal-controls', show: isAdmin }
+            ];
+
+            adminElements.forEach(el => {
+                const element = document.getElementById(el.id);
+                if (element) {
+                    if (el.show) element.classList.remove('hidden');
+                    else element.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('admin-login-btn').textContent = isAdmin ? 'تسجيل الخروج من الإدارة' : 'الإدارة';
+
+            // Update top toggle button UI
+            const toggleBtn = document.getElementById('admin-toggle-btn');
+            const toggleKnob = document.getElementById('admin-toggle-knob');
+            const shieldIcon = document.getElementById('admin-shield-icon');
+
+            if (isAdmin) {
+                toggleBtn.classList.remove('bg-slate-800');
+                toggleBtn.classList.add('bg-indigo-600');
+                toggleKnob.classList.remove('left-5');
+                toggleKnob.classList.add('left-1');
+                shieldIcon.classList.remove('hidden');
+            } else {
+                toggleBtn.classList.add('bg-slate-800');
+                toggleBtn.classList.remove('bg-indigo-600');
+                toggleKnob.classList.add('left-5');
+                toggleKnob.classList.remove('left-1');
+                shieldIcon.classList.add('hidden');
+            }
+            renderLeaderboard();
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all views
+            ['view-leaderboard', 'view-home', 'view-awards', 'view-settings'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).classList.remove('block');
+            });
+            // Show active view
+            document.getElementById('view-' + tabId).classList.add('block');
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+
+            // Reset Desktop Tab Buttons
+            ['leaderboard', 'home', 'awards', 'settings'].forEach(id => {
+                const btn = document.getElementById('tab-btn-' + id);
+                btn.className = "px-5 py-2 rounded-full font-bold text-xs md:text-sm cursor-pointer transition-all duration-200 bg-[#161B2D]/80 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white";
+
+                const mobileBtn = document.getElementById('mobile-tab-' + id);
+                mobileBtn.className = "flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 text-slate-400 hover:text-slate-200";
+                mobileBtn.querySelector('svg').classList.remove('fill-indigo-500/10');
+            });
+
+            // Activate Desktop Tab
+            document.getElementById('tab-btn-' + tabId).className = "px-5 py-2 rounded-full font-bold text-xs md:text-sm cursor-pointer transition-all duration-200 bg-indigo-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)]";
+
+            // Activate Mobile Tab
+            const activeMobileBtn = document.getElementById('mobile-tab-' + tabId);
+            activeMobileBtn.className = "flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 text-indigo-400";
+            activeMobileBtn.querySelector('svg').classList.add('fill-indigo-500/10');
+        }
+
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboard');
+            container.innerHTML = '';
+
+            let filteredStudents = students;
+            if (searchQuery) {
+                filteredStudents = students.filter(s => s.name.toLowerCase().includes(searchQuery));
+            }
+
+            if (filteredStudents.length === 0) {
+                const emptyMsg = searchQuery ? 'لا يوجد طلاب مطابقين للبحث.' : 'لا يوجد طلاب مسجلين بعد. ابدأ بإضافة طلاب!';
+                container.innerHTML = `
+                    <div class="bg-[#161B2D]/80 backdrop-blur-md rounded-2xl p-12 text-center border border-slate-800 shadow-xl flex flex-col items-center justify-center">
+                        <span class="text-4xl mb-3">🔍</span>
+                        <p class="font-bold text-base text-white mb-1">${emptyMsg}</p>
+                        <p class="text-xs text-slate-400">حاول البحث باستخدام اسم طالب آخر.</p>
+                    </div>`;
+                return;
+            }
+
+            // Update home stats dynamically
+            const totalPoints = students.reduce((sum, s) => sum + (s.total_points || 0), 0);
+            const totalPages = globalTotalPages;
+
+            document.getElementById('stat-total-students').textContent = students.length.toLocaleString('ar-EG');
+            document.getElementById('stat-total-points').textContent = totalPoints.toLocaleString('ar-EG');
+            document.getElementById('stat-total-pages').textContent = totalPages.toLocaleString('ar-EG');
+
+            // Dynamic Circles Split
+            const totalStudents = students.length;
+
+            function formatStudentsCount(count) {
+                if (count === 0) return 'لا يوجد طلاب';
+                if (count === 1) return 'طالب واحد';
+                if (count === 2) return 'طالبين';
+                if (count >= 3 && count <= 10) return count.toLocaleString('ar-EG') + ' طلاب';
+                return count.toLocaleString('ar-EG') + ' طالباً';
+            }
+
+            const circleSummerElem = document.getElementById('stat-circle-summer');
+            if (circleSummerElem) circleSummerElem.textContent = formatStudentsCount(totalStudents);
+
+            let currentPoints = -1;
+            let displayedRank = 1;
+
+            filteredStudents.forEach((student, index) => {
+                const pts = student.total_points || 0;
+
+                if (pts !== currentPoints) {
+                    displayedRank = index + 1;
+                    currentPoints = pts;
+                }
+
+                const rank = displayedRank;
+                const isGold = rank === 1;
+                const isSilver = rank === 2;
+                const isBronze = rank === 3;
+
+                let cardClass = "relative bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-indigo-500/5 hover:border-slate-700/85 cursor-pointer hover:scale-[1.01] mb-2";
+                let rankBadgeClass = "w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center font-bold text-lg relative shrink-0 shadow-md bg-slate-800/80 text-slate-300 border border-slate-700/60 font-mono";
+                let progressColor = "bg-indigo-600 shadow-[0_0_8px_rgba(99,102,241,0.6)]";
+                let rankText = rank;
+
+                if (isGold) {
+                    cardClass = "relative bg-gradient-to-br from-amber-500/15 via-[#111625] to-slate-900 border-2 border-amber-500/50 rounded-3xl p-5 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.15)] hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:border-amber-400/70 cursor-pointer hover:scale-[1.02] mb-4 overflow-hidden z-30";
+                    rankBadgeClass = "w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-600 flex items-center justify-center font-black text-slate-950 relative shrink-0 shadow-[0_0_15px_rgba(252,211,77,0.5)] border-2 border-yellow-200/50 font-mono text-2xl md:text-3xl";
+                    progressColor = "bg-gradient-to-r from-yellow-400 to-amber-600 shadow-[0_0_10px_rgba(245,158,11,0.8)]";
+                    rankText = '👑';
+                } else if (isSilver) {
+                    cardClass = "relative bg-gradient-to-br from-slate-300/15 via-[#111625] to-slate-900 border-2 border-slate-300/40 rounded-3xl p-5 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-300 shadow-[0_0_15px_rgba(148,163,184,0.1)] hover:shadow-[0_0_20px_rgba(148,163,184,0.15)] hover:border-slate-300/60 cursor-pointer hover:scale-[1.02] mb-3 overflow-hidden z-20";
+                    rankBadgeClass = "w-11 h-11 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-slate-200 via-slate-300 to-slate-500 flex items-center justify-center font-bold text-slate-950 relative shrink-0 shadow-[0_0_10px_rgba(148,163,184,0.4)] border-2 border-slate-100/50 font-mono text-xl md:text-2xl";
+                    progressColor = "bg-gradient-to-r from-slate-300 to-slate-500 shadow-[0_0_8px_rgba(148,163,184,0.6)]";
+                    rankText = '🥈';
+                } else if (isBronze) {
+                    cardClass = "relative bg-gradient-to-br from-orange-500/15 via-[#111625] to-slate-900 border-2 border-orange-500/40 rounded-3xl p-5 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-300 shadow-[0_0_15px_rgba(249,115,22,0.1)] hover:shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:border-orange-500/60 cursor-pointer hover:scale-[1.02] mb-3 overflow-hidden z-10";
+                    rankBadgeClass = "w-11 h-11 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 flex items-center justify-center font-bold text-slate-950 relative shrink-0 shadow-[0_0_10px_rgba(249,115,22,0.4)] border-2 border-orange-200/50 font-mono text-xl md:text-2xl";
+                    progressColor = "bg-gradient-to-r from-orange-400 to-orange-600 shadow-[0_0_8px_rgba(249,115,22,0.6)]";
+                    rankText = '🥉';
+                }
+
+                // Level Math (50 points per level)
+                const level = Math.floor(pts / 50) + 1;
+                const targetPoints = level * 50;
+                const progressPercent = Math.min(100, Math.round((pts / targetPoints) * 100));
+
+                const allBadges = student.badges || [];
+                const visibleBadges = allBadges.slice(0, 3);
+                let badgesHtml = '';
+                if (allBadges.length > 0) {
+                    badgesHtml = `
+                    <div class="hidden sm:flex items-center justify-end gap-1.5 shrink-0 border-r border-slate-800/80 pr-4 mr-2">
+                        ${visibleBadges.map(b => `
+                            <div title="${BADGES[b] || b}" class="w-10 h-10 rounded-lg bg-slate-950/60 flex items-center justify-center border border-slate-800/80 shadow-inner hover:scale-110 transition cursor-help">
+                                <img src="assets/badges/${b}.png" onerror="this.src='${defaultSvgFallback}'" class="w-7 h-7 object-contain" alt="badge">
+                            </div>
+                        `).join('')}
+                        ${allBadges.length > 3 ? `
+                            <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700">
+                                <span class="text-[12px] font-bold text-slate-300">+${allBadges.length - 3}</span>
+                            </div>
+                        ` : ''}
+                    </div>`;
+                }
+
+                const initial = student.name ? student.name.charAt(0) : '?';
+
+                let shineHtml = '';
+                if (isGold) shineHtml = `<div class="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-shine opacity-80 pointer-events-none"></div>`;
+                else if (isSilver) shineHtml = `<div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-300/10 to-transparent -translate-x-full animate-shine opacity-60 pointer-events-none" style="animation-delay: 1s;"></div>`;
+                else if (isBronze) shineHtml = `<div class="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/10 to-transparent -translate-x-full animate-shine opacity-60 pointer-events-none" style="animation-delay: 2s;"></div>`;
+
+                let goldInset = (isGold || isSilver || isBronze) ? `<div class="absolute inset-0 rounded-full shadow-[inset_0_2px_4px_rgba(255,255,255,0.6)]"></div>` : '';
+
+                const row = document.createElement('div');
+                row.className = cardClass;
+                row.onclick = () => openStudentModal(student);
+                row.innerHTML = `
+                    ${shineHtml}
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                        <div class="${rankBadgeClass}">
+                            ${goldInset}
+                            <span>${rankText}</span>
+                        </div>
+                        
+                        <div class="w-12 h-12 rounded-full bg-slate-950 border-2 border-slate-800 shadow-sm overflow-hidden shrink-0 flex items-center justify-center">
+                            <div class="w-full h-full flex items-center justify-center bg-indigo-600/20 text-indigo-400 font-bold text-lg">${initial}</div>
+                        </div>
+
+                        <div class="flex-1 min-w-0 text-right">
+                            <div class="flex justify-between items-start mb-1">
+                                <h2 class="font-bold text-sm md:text-base text-white tracking-tight truncate">${escapeHtml(student.name)}</h2>
+                                <div class="text-left font-bold text-sm md:text-base text-indigo-400 whitespace-nowrap">
+                                    ${pts.toLocaleString('ar-EG')} <span class="font-normal text-xs text-slate-400">نقطة</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex justify-between items-center text-[10px] md:text-xs">
+                                    <span class="bg-slate-800/80 text-slate-300 border border-slate-700/50 px-2 py-0.5 rounded font-semibold text-[10px]">مستوى ${level}</span>
+                                    <span class="text-slate-400 font-mono">${pts.toLocaleString('ar-EG')} / ${targetPoints.toLocaleString('ar-EG')}</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-1 h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                                        <div style="width: ${progressPercent}%" class="h-full ${progressColor} rounded-full transition-all duration-500"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ${badgesHtml}
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        async function openStudentModal(student) {
+            currentStudentId = student.id;
+            document.getElementById('modal-student-name').textContent = student.name;
+            document.getElementById('modal-student-points').textContent = student.total_points || 0;
+
+            const badgesGrid = document.getElementById('modal-badges-grid');
+            badgesGrid.innerHTML = Object.entries(BADGES).map(([key, name]) => {
+                const hasBadge = student.badges && student.badges.includes(key);
+                const styleClasses = hasBadge ? "opacity-100 scale-100 drop-shadow-md" : "grayscale opacity-30 scale-95 hover:grayscale-0 hover:opacity-50";
+                return `
+                    <div class="flex flex-col items-center justify-center p-3 rounded-xl ${hasBadge ? 'bg-indigo-600/10 border border-indigo-500/20' : 'bg-transparent'} transition">
+                        <img src="assets/badges/${key}.png" onerror="this.src='${defaultSvgFallback}'" alt="${name}" class="w-16 h-16 md:w-20 md:h-20 object-contain mb-2 transition transform ${styleClasses}">
+                        <span class="text-[11px] text-center font-bold ${hasBadge ? 'text-indigo-300' : 'text-slate-500'} leading-tight">${name}</span>
+                    </div>
+                `;
+            }).join('');
+
+            if (isAdmin) {
+                const checkboxesContainer = document.getElementById('admin-badges-checkboxes');
+                checkboxesContainer.innerHTML = Object.entries(BADGES).map(([key, name]) => {
+                    const isChecked = student.badges && student.badges.includes(key) ? 'checked' : '';
+                    const pts = BADGE_POINTS[key] || 0;
+                    return `
+                        <label class="relative block cursor-pointer group" title="${name}">
+                            <input type="checkbox" value="${key}" class="badge-checkbox peer hidden" ${isChecked}>
+                            <div class="flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl border-2 border-slate-800 bg-[#161B2D] text-slate-500 cursor-pointer transition-all duration-200 ease-out opacity-60 hover:opacity-90 peer-checked:opacity-100 peer-checked:border-indigo-500 peer-checked:bg-indigo-600/10 peer-checked:scale-[1.02] peer-checked:shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                                <img src="assets/badges/${key}.png" onerror="this.src='${defaultSvgFallback}'" class="w-20 h-20 md:w-24 md:h-24 object-contain drop-shadow-md mx-auto mb-2 transition-transform duration-200 peer-checked:scale-110" alt="${name}">
+                                <div class="text-center w-full mt-1">
+                                    <div class="text-[10px] sm:text-xs font-bold leading-tight mb-1 peer-checked:text-white transition-colors">${name}</div>
+                                    <div class="text-[9px] sm:text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 inline-block px-1.5 py-0.5 rounded-full border border-indigo-500/20">${pts} نقطة</div>
+                                </div>
+                                <div class="absolute top-2 right-2 w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-900 flex items-center justify-center opacity-0 scale-50 transition-all duration-200 peer-checked:opacity-100 peer-checked:scale-100 peer-checked:border-indigo-400 peer-checked:bg-indigo-500">
+                                    <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            </div>
+                        </label>
+                    `;
+                }).join('');
+
+                document.getElementById('log-pages').value = 0;
+                document.getElementById('log-attendance').value = 'present';
+
+                if (datePicker) {
+                    datePicker.setDate('today');
+                }
+            }
+
+            const logsTable = document.getElementById('modal-logs-table');
+            const theadTr = logsTable.closest('table').querySelector('thead tr');
+            if (isAdmin && !document.getElementById('admin-actions-th')) {
+                const th = document.createElement('th');
+                th.id = 'admin-actions-th';
+                th.className = "py-3 px-4 font-semibold text-center";
+                th.textContent = "إجراءات";
+                theadTr.appendChild(th);
+            } else if (!isAdmin && document.getElementById('admin-actions-th')) {
+                document.getElementById('admin-actions-th').remove();
+            }
+
+            logsTable.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500"><svg class="animate-spin h-6 w-6 text-gray-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>جاري تحميل السجل...</td></tr>';
+
+            if (SUPABASE_URL.includes('YOUR_SUPABASE')) {
+                logsTable.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-gray-500 text-xs">سجل المتابعة يظهر هنا بعد ربط قاعدة البيانات</td></tr>';
+            } else {
+                try {
+                    const { data: logs, error } = await _supabase
+                        .from('logs')
+                        .select('*')
+                        .eq('student_id', student.id)
+                        .order('date', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!logs || logs.length === 0) {
+                        logsTable.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500 flex flex-col items-center"><svg class="w-8 h-8 text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>لا يوجد سجلات سابقة لهذا الطالب</td></tr>';
+                    } else {
+                        logsTable.innerHTML = logs.map(log => {
+                            const dateObj = new Date(log.date);
+                            const dateStr = dateObj.toLocaleDateString('ar-SA');
+                            const adminActions = isAdmin ? `
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex items-center gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onclick="editLog('${log.id}', '${log.status}', ${log.pages_saved || 0}, '${log.date}')" class="p-1.5 rounded-md bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/40 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        </button>
+                                        <button onclick="deleteLog('${log.id}', '${log.status}', ${log.pages_saved || 0})" class="p-1.5 rounded-md bg-red-500/20 text-red-400 hover:bg-red-500/40 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            ` : '';
+
+                            return `
+                                <tr class="hover:bg-white/[0.02] transition group">
+                                    <td class="py-3 px-4 text-gray-300 text-xs font-semibold whitespace-nowrap">${dateStr}</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2.5 py-1 rounded-md text-xs font-bold ${log.status === 'حاضر' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">
+                                            ${log.status}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-300 font-bold text-center">${log.pages_saved || 0}</td>
+                                    <td class="py-3 px-4 text-amber-400 font-extrabold">+${(log.status === 'حاضر' ? 100 : 0) + ((log.pages_saved || 0) * 5)}</td>
+                                    ${adminActions}
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                } catch (error) {
+                    logsTable.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-red-400 text-xs">خطأ في التحميل: ${error.message}</td></tr>`;
+                }
+            }
+
+            const modal = document.getElementById('student-modal');
+            const modalContent = modal.querySelector('div');
+            modal.classList.remove('hidden');
+
+            void modal.offsetWidth;
+
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+        }
+
+        window.deleteLog = async function (logId, status, pagesSaved) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: 'سيتم حذف هذا السجل وخصم النقاط الخاصة به من الطالب بشكل دائم.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#4b5563',
+                confirmButtonText: 'نعم، احذف السجل',
+                cancelButtonText: 'إلغاء',
+                background: '#1f2937', color: '#fff'
+            });
+
+            if (!isConfirmed) return;
+
+            try {
+                const { error } = await _supabase.from('logs').delete().eq('id', logId);
+                if (error) throw error;
+
+                let pointsToDeduct = 0;
+                if (status === 'حاضر') pointsToDeduct += 100;
+                pointsToDeduct += (pagesSaved * 5);
+
+                const student = students.find(s => s.id === currentStudentId);
+                const newTotal = Math.max(0, (student.total_points || 0) - pointsToDeduct);
+
+                await _supabase.from('students').update({ total_points: newTotal }).eq('id', currentStudentId);
+
+                await fetchStudents();
+                const updatedStudent = students.find(s => s.id === currentStudentId);
+                openStudentModal(updatedStudent);
+
+                Toast.fire({ icon: 'success', title: 'تم الحذف بنجاح' });
+            } catch (e) {
+                Toast.fire({ icon: 'error', title: 'حدث خطأ أثناء الحذف: ' + e.message });
+            }
+        };
+
+        window.editLog = async function (logId, status, pagesSaved, date) {
+            const { value: formValues } = await Swal.fire({
+                title: 'تعديل السجل',
+                html: `
+                    <div class="space-y-4 text-right" dir="rtl">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">التاريخ</label>
+                            <input type="date" id="swal-edit-date" class="w-full bg-[#0B0F1A] text-white px-4 py-2.5 rounded-xl border border-slate-700" value="${date.split('T')[0]}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">حالة الحضور</label>
+                            <select id="swal-edit-status" class="w-full bg-[#0B0F1A] text-white px-4 py-2.5 rounded-xl border border-slate-700">
+                                <option value="حاضر" ${status === 'حاضر' ? 'selected' : ''}>حاضر</option>
+                                <option value="غائب" ${status === 'غائب' ? 'selected' : ''}>غائب</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">الصفحات</label>
+                            <input type="number" id="swal-edit-pages" min="0" class="w-full bg-[#0B0F1A] text-white px-4 py-2.5 rounded-xl border border-slate-700" value="${pagesSaved}">
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'حفظ التعديلات',
+                cancelButtonText: 'إلغاء',
+                background: '#1f2937', color: '#fff',
+                didOpen: () => {
+                    flatpickr("#swal-edit-date", { locale: "ar", dateFormat: "Y-m-d", theme: "dark" });
+                },
+                preConfirm: () => {
+                    return {
+                        date: document.getElementById('swal-edit-date').value,
+                        status: document.getElementById('swal-edit-status').value,
+                        pages: parseInt(document.getElementById('swal-edit-pages').value) || 0
+                    }
+                }
+            });
+
+            if (!formValues) return;
+
+            try {
+                const oldPoints = (status === 'حاضر' ? 100 : 0) + (pagesSaved * 5);
+                const newPoints = (formValues.status === 'حاضر' ? 100 : 0) + (formValues.pages * 5);
+                const pointDelta = newPoints - oldPoints;
+
+                const newDateIso = new Date(formValues.date + 'T12:00:00').toISOString();
+
+                const { error } = await _supabase.from('logs').update({
+                    status: formValues.status,
+                    pages_saved: formValues.pages,
+                    date: newDateIso
+                }).eq('id', logId);
+
+                if (error) throw error;
+
+                if (pointDelta !== 0) {
+                    const student = students.find(s => s.id === currentStudentId);
+                    const newTotal = Math.max(0, (student.total_points || 0) + pointDelta);
+                    await _supabase.from('students').update({ total_points: newTotal }).eq('id', currentStudentId);
+                }
+
+                await fetchStudents();
+                const updatedStudent = students.find(s => s.id === currentStudentId);
+                openStudentModal(updatedStudent);
+
+                Toast.fire({ icon: 'success', title: 'تم حفظ التعديلات بنجاح' });
+            } catch (e) {
+                Toast.fire({ icon: 'error', title: 'حدث خطأ: ' + e.message });
+            }
+        };
+
+        function closeModal() {
+            const modal = document.getElementById('student-modal');
+            const modalContent = modal.querySelector('div');
+
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                currentStudentId = null;
+            }, 300);
+        }
+
+        function escapeHtml(unsafe) {
+            return (unsafe || '').toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+
+</html>
